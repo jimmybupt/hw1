@@ -11,3 +11,19 @@ INSERT INTO tmp VALUES (0),(1),(0),(1),(0),(1),(0),(1),(1),(2),(1),(2),(1),(2),(
 SELECT * FROM tmp AS t1 JOIN tmp AS t2 JOIN tmp AS t3 JOIN tmp AS t4 WHERE t1.id=t2.id AND t2.id=t3.id AND t3.id=t4.id ORDER BY 1 LIMIT 1050;
 DROP TABLE tmp;
 
+--now we start test for nlj
+SET ENABLE_CUSTOM_JOIN=true;
+!mv tmp_nlj tmp_hash;
+
+--basic test case in hw1 bonus
+SELECT * FROM itest JOIN htest on itest.id=htest.id;
+
+--test case in hw1 assignment
+SELECT tab1.col_1, MAX(tab2.col_2), MIN(tab2.col_2) FROM tab2 JOIN tab1 USING (id) GROUP BY col_1 ORDER BY 1 LIMIT 5;
+
+--try to overflow default page size (1024)
+CREATE TABLE IF NOT EXISTS tmp (id INT);
+TRUNCATE TABLE tmp;
+INSERT INTO tmp VALUES (0),(1),(0),(1),(0),(1),(0),(1),(1),(2),(1),(2),(1),(2),(1),(2);
+SELECT * FROM tmp AS t1 JOIN tmp AS t2 JOIN tmp AS t3 JOIN tmp AS t4 WHERE t1.id=t2.id AND t2.id=t3.id AND t3.id=t4.id ORDER BY 1 LIMIT 1050;
+DROP TABLE tmp;
