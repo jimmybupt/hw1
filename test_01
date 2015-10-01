@@ -11,7 +11,7 @@ INSERT INTO tmp VALUES (0),(1),(0),(1),(0),(1),(0),(1),(1),(2),(1),(2),(1),(2),(
 SELECT * FROM tmp AS t1 JOIN tmp AS t2 JOIN tmp AS t3 JOIN tmp AS t4 WHERE t1.id=t2.id AND t2.id=t3.id AND t3.id=t4.id ORDER BY 1 LIMIT 1050;
 DROP TABLE tmp;
 
---big random join
+--big random join, every table is populated by 10000 random numbers range from 1-1000.
 CREATE TABLE IF NOT EXISTS t1 (x INT);
 CREATE TABLE IF NOT EXISTS t2 (y INT);
 TRUNCATE TABLE t1;
