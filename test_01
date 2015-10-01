@@ -1,4 +1,5 @@
 --basic test case in hw1 bonus
+SET ENABLE_CUSTOM_JOIN=false;
 SELECT * FROM itest JOIN htest on itest.id=htest.id;
 
 --test case in hw1 assignment
