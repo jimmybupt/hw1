@@ -40,6 +40,7 @@ NestedLoopJoinNode::NestedLoopJoinNode(
   LOG(INFO) << "constructing NestedLoopJoinNode";
 }
 
+// NEW function, reload Init to create predicate object
 Status NestedLoopJoinNode::Init(const TPlanNode& tnode) {
   RETURN_IF_ERROR(BlockingJoinNode::Init(tnode));
   DCHECK(tnode.__isset.nested_loop_join_node);
@@ -65,15 +66,11 @@ Status NestedLoopJoinNode::Prepare(RuntimeState* state) {
 
 
 void NestedLoopJoinNode::Close(RuntimeState* state) {
-  
-//right_child_batches_.Reset();
   if(is_closed())return;
   Expr::Close(join_conjunct_ctxs_, state);
   delete (right_child_pool_);
-  //right_child_pool_.get()->~ObjectPool();
   BlockingJoinNode::Close(state);
   LOG(INFO) << "Return from Close()";
-//right_child_pool_.get()->~ObjectPool();
 }
 
 /**
@@ -139,24 +136,24 @@ int NestedLoopJoinNode::DoNestedLoopJoin(RowBatch* output_batch, RowBatch* batch
   //Number of rows returned by this function
   int rows_returned = 0;
 
+  //prepare predicates
   ExprContext* const* join_conjunct_ctxs = &join_conjunct_ctxs_[0];
   size_t num_join_ctxs = join_conjunct_ctxs_.size();
 
   while (row_batch_capacity > 0){
-    //LOG(INFO) << "probe batch has " << probe_batch_->num_rows() << " rows";
+    //prepare output row
     TupleRow* output_row = output_batch->GetRow(output_batch->AddRow());
-    //LOG(INFO) << "we have " <<num_join_ctxs << " conjunct";
-    //LOG(INFO) << "right getrow";
     CreateOutputRow(output_row, current_probe_row_, current_right_child_row_.GetRow());
+    //test and commit
     if(EvalConjuncts(join_conjunct_ctxs, num_join_ctxs, output_row)){
       output_batch->CommitLastRow();
       row_batch_capacity --;
       rows_returned ++;
     }
     current_right_child_row_.Next();
+    //reset right probe and increse left probe
     if (current_right_child_row_.AtEnd()){
       if (probe_batch_pos_ ==  probe_batch_->num_rows()) break;
-      //LOG(INFO) << "left getrow";
       current_probe_row_ = probe_batch_->GetRow(probe_batch_pos_++);
       current_right_child_row_ = right_child_batches_.Iterator();
     }
